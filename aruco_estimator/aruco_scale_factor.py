@@ -23,7 +23,7 @@ import shutil
 import sys
 sys.path.append("C:/Users/meyerls/Documents/AIST/code/gaussian-splatting/aruco-estimator")
 from colmap_wrapper.dataloader.utils import generate_colmap_sparse_pc
-from colmap_wrapper.dataloader.bin import write_cameras_binary, write_images_binary, write_points3D_binary
+from colmap_wrapper.dataloader.bin import write_images_binary, write_points3D_binary#, write_cameras_binary
 from colmap_wrapper.dataloader import COLMAPLoader
 from colmap_wrapper.dataloader import COLMAPProject
 
