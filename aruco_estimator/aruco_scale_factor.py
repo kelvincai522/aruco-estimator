@@ -263,7 +263,7 @@ class ArucoScaleFactor(ScaleFactorBase):
         @return:
         """
         center = self.aruco_corners_3d.mean(0)
-        print("center", center)
+        # print("center", center)
         p0 = self.aruco_corners_3d[0]
         p1 = self.aruco_corners_3d[1]
         p2 = self.aruco_corners_3d[2]
