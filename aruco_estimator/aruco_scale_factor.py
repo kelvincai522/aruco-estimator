@@ -311,7 +311,7 @@ class ArucoScaleFactor(ScaleFactorBase):
 
         # Save scale factor
         scale_factor_file_name = self.photogrammetry_software._project_path.joinpath('sparse_scaled/scale_factor.txt')
-        #np.savetxt(scale_factor_file_name, np.array([self.scale_factor]))
+        np.savetxt(scale_factor_file_name, np.array([self.scale_factor]), fmt="%.8f")
 
 
 if __name__ == '__main__':
