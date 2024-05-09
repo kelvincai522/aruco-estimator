@@ -174,7 +174,7 @@ def T2qtvec(T):
     R_camera = R_world.T
 
     # Convert the camera's rotation matrix in camera coordinate system to a quaternion
-    from colmap_wrapper.colmap.utils import rotmat2qvec
+    from colmap_wrapper.dataloader.utils import rotmat2qvec
     qvec_camera = rotmat2qvec(R_camera)
 
     return t_camera, qvec_camera
