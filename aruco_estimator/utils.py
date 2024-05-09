@@ -141,3 +141,40 @@ def manual_registration(pcd_1, pcd_2):
     picked_points_2 = pcd_1.select_by_index(picked_id_target)
 
     return np.asarray(picked_points_1.points), np.asarray(picked_points_2.points)
+
+def create_rotation_matrix(x, z):
+    # Normalize the vectors to obtain their unit vectors
+    x = x / np.linalg.norm(x)
+    z = z / np.linalg.norm(z)
+
+    # Calculate the cross product of u and w to obtain a third unit vector v
+    y = np.cross(z, x)
+
+    # Construct the rotation matrix
+    R = np.column_stack((x, y, z))
+
+    # Ensure that the determinant of R is +1
+    if np.linalg.det(R) < 0:
+        R[:, 2] *= -1
+
+    return R
+    
+
+def T2qtvec(T):
+    # Compute the camera's rotation matrix in world space
+    R_world = T[:3, :3]
+
+    # Compute the camera's translation vector in world space
+    t_world = T[:3, 3]
+
+    # Compute the camera's translation vector in camera coordinate system
+    t_camera = -np.matmul(R_world.T, t_world)
+
+    # Compute the camera's rotation matrix in camera coordinate system
+    R_camera = R_world.T
+
+    # Convert the camera's rotation matrix in camera coordinate system to a quaternion
+    from colmap_wrapper.colmap.utils import rotmat2qvec
+    qvec_camera = rotmat2qvec(R_camera)
+
+    return t_camera, qvec_camera
