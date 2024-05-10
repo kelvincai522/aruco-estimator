@@ -119,7 +119,8 @@ class ArucoScaleFactor(ScaleFactorBase):
 
         :return:
         """
-        self.__detect()
+        if not self.__detect():
+            return None, None
 
         # if not self.aruco_marker_detected:
         #    return self.aruco_marker_detected
