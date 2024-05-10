@@ -23,13 +23,14 @@ import shutil
 import sys
 sys.path.append("C:/Users/meyerls/Documents/AIST/code/gaussian-splatting/aruco-estimator")
 from colmap_wrapper.dataloader.utils import generate_colmap_sparse_pc
-from colmap_wrapper.dataloader.bin import write_cameras_binary, write_images_binary, write_points3D_binary
+from colmap_wrapper.dataloader.bin import write_images_binary, write_points3D_binary#, write_cameras_binary
 from colmap_wrapper.dataloader import COLMAPLoader
 from colmap_wrapper.dataloader import COLMAPProject
 
 from aruco_estimator.aruco import *
 from aruco_estimator.opt import *
 from aruco_estimator.base import *
+from aruco_estimator.utils import *
 
 DEBUG = False
 
@@ -266,6 +267,30 @@ class ArucoScaleFactor(ScaleFactorBase):
         @param true_scale:
         @return:
         """
+        center = self.aruco_corners_3d.mean(0)
+        # print("center", center)
+        p0 = self.aruco_corners_3d[0]
+        p1 = self.aruco_corners_3d[1]
+        p2 = self.aruco_corners_3d[2]
+        p3 = self.aruco_corners_3d[3]
+
+        x = p0 - p3
+        x = x / np.linalg.norm(x)
+        y = p2 - p3
+        y = y / np.linalg.norm(y)
+        z = np.cross(y, x)
+        z = z / np.linalg.norm(z)
+
+        Ro = create_rotation_matrix(x, z)
+
+        Tt = np.eye(4)
+        Tt[:3, :3] = np.eye(3)#Ro.T
+        Tt[:3, 3] = -center
+        Tr = np.eye(4)
+        Tr[:3, :3] = Ro.T
+        Tr[:3, 3] = np.zeros(3)
+
+        T = np.dot(Tr, Tt)
 
         self.scale_factor = (self.aruco_size) / self.aruco_distance
         if False:
@@ -277,15 +302,21 @@ class ArucoScaleFactor(ScaleFactorBase):
 
         self.sparse_scaled = deepcopy(self.photogrammetry_software.sparse)
         for num in self.photogrammetry_software.sparse.keys():
-            self.sparse_scaled[num].xyz = self.sparse_scaled[num].xyz * self.scale_factor
+            # self.sparse_scaled[num].xyz = self.sparse_scaled[num].xyz * self.scale_factor
+            self.sparse_scaled[num].xyz = np.dot(T, np.append(self.sparse_scaled[num].xyz,1))[:3] * self.scale_factor
 
         # self.sparse_scaled.scale(scale=self.scale_factor, center=np.asarray([0., 0., 0.]))
 
         # ToDo: Scale tvec and save
         self.photogrammetry_software.images_scaled = deepcopy(self.photogrammetry_software.images)
         for idx in self.photogrammetry_software.images_scaled.keys():
-            self.photogrammetry_software.images_scaled[idx].tvec = self.photogrammetry_software.images[
-                                                                       idx].tvec * self.scale_factor
+            # self.photogrammetry_software.images_scaled[idx].tvec = self.photogrammetry_software.images[
+            #                                                            idx].tvec * self.scale_factor
+            im = self.photogrammetry_software.images[idx]
+            extrinsics = np.dot(T, im.extrinsics)
+            tvec, qvec = T2qtvec(extrinsics)
+            self.photogrammetry_software.images_scaled[idx].tvec = tvec * self.scale_factor
+            self.photogrammetry_software.images_scaled[idx].qvec = qvec
 
         return self.sparse_scaled, self.scale_factor
 
@@ -316,7 +347,7 @@ class ArucoScaleFactor(ScaleFactorBase):
 
         # Save scale factor
         scale_factor_file_name = self.photogrammetry_software._project_path.joinpath('sparse_scaled/scale_factor.txt')
-        #np.savetxt(scale_factor_file_name, np.array([self.scale_factor]))
+        np.savetxt(scale_factor_file_name, np.array([self.scale_factor]), fmt="%.8f")
 
 
 if __name__ == '__main__':
