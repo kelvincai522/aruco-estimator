@@ -349,6 +349,10 @@ class ArucoScaleFactor(ScaleFactorBase):
         scale_factor_file_name = self.photogrammetry_software._project_path.joinpath('sparse_scaled/scale_factor.txt')
         np.savetxt(scale_factor_file_name, np.array([self.scale_factor]), fmt="%.8f")
 
+        # Save aruco marker corners
+        aruco_corners_file_name = self.photogrammetry_software._project_path.joinpath('sparse_scaled/aruco_corners.txt')
+        np.savetxt(aruco_corners_file_name, self.aruco_corners_3d, fmt="%.8f")
+
 
 if __name__ == '__main__':
     from colmap_wrapper.colmap import COLMAP
